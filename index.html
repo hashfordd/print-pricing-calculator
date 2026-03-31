@@ -143,11 +143,27 @@
       <span>1</span><span>5</span><span>10</span><span>15</span><span>20</span>
     </div>
     <div class="be-note" id="be-note"></div>
+    <div class="savings-callout hidden" id="savings-callout">
+      <div class="savings-icon">&#8595;</div>
+      <div id="savings-text"></div>
+    </div>
+  </div>
+
+  <!-- Size comparison -->
+  <div class="card">
+    <div class="card-title">Profit per print &mdash; all sizes at <span id="compare-qty-label">1 print</span></div>
+    <div id="compare-bars"></div>
   </div>
 
   <!-- Chart -->
   <div class="card">
-    <div class="card-title">Total order profit &mdash; all sizes</div>
+    <div class="chart-header">
+      <div class="card-title" id="chart-title" style="margin-bottom:0">Total order profit &mdash; all sizes</div>
+      <div class="chart-toggle">
+        <button class="chart-toggle-btn active" id="chart-mode-total" onclick="setChartMode('total')">Total profit</button>
+        <button class="chart-toggle-btn" id="chart-mode-per" onclick="setChartMode('per')">Per print</button>
+      </div>
+    </div>
     <div class="legend" id="legend"></div>
     <div class="chart-wrap">
       <canvas id="myChart"></canvas>

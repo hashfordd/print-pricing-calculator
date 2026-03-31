@@ -27,6 +27,7 @@ var qtys = [];
 for (var i = 1; i <= MAX; i++) qtys.push(i);
 var sel = 0;
 var qty = 1;
+var chartMode = 'total'; /* 'total' or 'per' */
 
 /* Track previous display values for conditional animation */
 var prevDisplay = {};
@@ -79,11 +80,10 @@ function saveState() {
       sizes: sizes, delivery: delivery, shipping: shipping,
       packaging: packaging, extras: extras
     }));
-  } catch (e) { /* quota or private browsing */ }
+  } catch (e) {}
 }
 
 function loadState() {
-  /* Reset to defaults first */
   sizes = JSON.parse(JSON.stringify(DEFAULT_SIZES));
   delivery = DEFAULT_DELIVERY;
   shipping = DEFAULT_SHIPPING;
@@ -97,7 +97,6 @@ function loadState() {
     if (!saved || !Array.isArray(saved.sizes)) return;
     if (saved.sizes.length !== DEFAULT_SIZES.length) return;
 
-    /* Validate every size has numeric ctp and price */
     var valid = saved.sizes.every(function (s) {
       return s && typeof s.label === 'string' &&
              typeof s.ctp === 'number' && !isNaN(s.ctp) &&
@@ -110,9 +109,7 @@ function loadState() {
     if (typeof saved.shipping === 'number' && !isNaN(saved.shipping)) shipping = saved.shipping;
     if (typeof saved.packaging === 'number' && !isNaN(saved.packaging)) packaging = saved.packaging;
     if (typeof saved.extras === 'number' && !isNaN(saved.extras)) extras = saved.extras;
-  } catch (e) {
-    /* Corrupted data — defaults already set */
-  }
+  } catch (e) {}
 }
 
 function populateSettingsInputs() {
@@ -139,7 +136,6 @@ function buildSizeEditor() {
         '<input type="number" value="' + s.ctp + '" min="0" step="1" data-idx="' + i + '" data-field="ctp" /></div></td>' +
       '<td><div class="setting-input"><span class="dollar">$</span>' +
         '<input type="number" value="' + s.price + '" min="0" step="1" data-idx="' + i + '" data-field="price" /></div></td>';
-    /* Attach listeners */
     tr.querySelectorAll('input').forEach(function (inp) {
       inp.addEventListener('input', function () { onSizeEdit(this); });
     });
@@ -154,7 +150,7 @@ function onSizeEdit(el) {
   if (isNaN(val)) return;
   sizes[idx][field] = val;
   saveState();
-  updateChartData();
+  rebuildChart();
   update();
 }
 
@@ -168,7 +164,7 @@ function onSettingChange() {
   if (!isNaN(p)) packaging = p;
   if (!isNaN(e)) extras = e;
   saveState();
-  updateChartData();
+  rebuildChart();
   update();
 }
 
@@ -181,7 +177,7 @@ function resetDefaults() {
   populateSettingsInputs();
   buildSizeEditor();
   saveState();
-  updateChartData();
+  rebuildChart();
   update();
 }
 
@@ -213,13 +209,39 @@ function buildLegend() {
 /* ── Chart ── */
 var chart = null;
 
-function buildChart() {
+function chartDataFn(s, n) {
+  if (chartMode === 'per') return parseFloat(profitPP(s, n).toFixed(2));
+  return parseFloat(orderProfit(s, n).toFixed(2));
+}
+
+function chartYLabel() {
+  return chartMode === 'per' ? 'Profit per print ($)' : 'Total profit ($)';
+}
+
+function chartTooltipLabel(ctx) {
+  var v = ctx.parsed.y;
+  var suffix = chartMode === 'per' ? '/print' : '';
+  return ' ' + ctx.dataset.label + ': ' + fmtMoneySign(v) + suffix;
+}
+
+function setChartMode(mode) {
+  chartMode = mode;
+  document.getElementById('chart-mode-total').className =
+    'chart-toggle-btn' + (mode === 'total' ? ' active' : '');
+  document.getElementById('chart-mode-per').className =
+    'chart-toggle-btn' + (mode === 'per' ? ' active' : '');
+  document.getElementById('chart-title').textContent =
+    (mode === 'total' ? 'Total order profit' : 'Profit per print') + ' \u2014 all sizes';
+  rebuildChart();
+}
+
+function rebuildChart() {
   if (typeof Chart === 'undefined') return;
 
   var datasets = sizes.map(function (s, i) {
     return {
       label: s.label,
-      data: qtys.map(function (n) { return parseFloat(orderProfit(s, n).toFixed(2)); }),
+      data: qtys.map(function (n) { return chartDataFn(s, n); }),
       borderColor: COLORS[i % COLORS.length],
       backgroundColor: 'transparent',
       borderWidth: i === sel ? 2.5 : 1.2,
@@ -262,9 +284,7 @@ function buildChart() {
             title: function (items) {
               return items[0].label + (items[0].label === '1' ? ' print' : ' prints');
             },
-            label: function (ctx) {
-              return ' ' + ctx.dataset.label + ': ' + fmtMoneySign(ctx.parsed.y);
-            }
+            label: chartTooltipLabel
           }
         }
       },
@@ -275,7 +295,7 @@ function buildChart() {
           grid: { color: 'rgba(0,0,0,0.04)' }
         },
         y: {
-          title: { display: true, text: 'Total profit ($)', font: { size: 11, weight: '500' }, color: '#aaa8a0' },
+          title: { display: true, text: chartYLabel(), font: { size: 11, weight: '500' }, color: '#aaa8a0' },
           ticks: {
             callback: function (v) { return fmtMoney(v); },
             font: { size: 11 }, color: '#aaa8a0'
@@ -311,12 +331,65 @@ function buildChart() {
 function updateChartData() {
   if (!chart) return;
   chart.data.datasets.forEach(function (ds, i) {
-    ds.data = qtys.map(function (n) { return parseFloat(orderProfit(sizes[i], n).toFixed(2)); });
+    ds.data = qtys.map(function (n) { return chartDataFn(sizes[i], n); });
     ds.borderWidth = i === sel ? 2.5 : 1.2;
     ds.borderDash = i === sel ? [] : [5, 4];
     ds.pointRadius = i === sel ? 3.5 : 0;
   });
   chart.update('none');
+}
+
+/* ── Size comparison bars ── */
+function updateCompareBars() {
+  var container = document.getElementById('compare-bars');
+  container.innerHTML = '';
+
+  /* Find the max absolute profit to scale bars */
+  var profits = sizes.map(function (s) { return profitPP(s, qty); });
+  var maxAbs = Math.max.apply(null, profits.map(function (p) { return Math.abs(p); }));
+  if (maxAbs === 0) maxAbs = 1;
+
+  /* Find the max price to use as the scale reference (so bars relate to something meaningful) */
+  var maxPrice = Math.max.apply(null, sizes.map(function (s) { return num(s.price); }));
+  if (maxPrice === 0) maxPrice = 1;
+
+  sizes.forEach(function (s, i) {
+    var p = profits[i];
+    var isActive = i === sel;
+    var barPct = Math.min(Math.abs(p) / maxAbs * 85, 100); /* 85% max so labels fit */
+    if (barPct < 3) barPct = 3;
+
+    var row = document.createElement('div');
+    row.className = 'compare-row';
+    row.addEventListener('click', function () { sel = i; update(); });
+
+    var label = document.createElement('div');
+    label.className = 'compare-label' + (isActive ? ' active-label' : '');
+    label.textContent = s.label;
+
+    var barWrap = document.createElement('div');
+    barWrap.className = 'compare-bar-wrap';
+
+    var bar = document.createElement('div');
+    bar.className = 'compare-bar';
+    bar.style.width = barPct + '%';
+    bar.style.background = p >= 0 ? COLORS[i % COLORS.length] : 'var(--red)';
+    if (barPct > 25) bar.textContent = fmtMoneySign(p);
+
+    barWrap.appendChild(bar);
+
+    var value = document.createElement('div');
+    value.className = 'compare-value ' + (p >= 0 ? 'pos' : 'neg');
+    value.textContent = fmtMoneySign(p);
+
+    row.appendChild(label);
+    row.appendChild(barWrap);
+    row.appendChild(value);
+    container.appendChild(row);
+  });
+
+  document.getElementById('compare-qty-label').textContent =
+    qty + (qty === 1 ? ' print' : ' prints');
 }
 
 /* ── Table ── */
@@ -375,15 +448,15 @@ function animIfChanged(id, val) {
   }
 }
 
-/* ── Main update — runs on every interaction ── */
+/* ── Main update ── */
 function update() {
   var s = sizes[sel];
   if (!s) return;
 
-  var c  = costPP(s, qty);
-  var p  = profitPP(s, qty);
-  var t  = orderProfit(s, qty);
-  var m  = marginPct(s, qty);
+  var c     = costPP(s, qty);
+  var p     = profitPP(s, qty);
+  var t     = orderProfit(s, qty);
+  var m     = marginPct(s, qty);
   var price = num(s.price);
 
   /* Quantity displays */
@@ -436,15 +509,13 @@ function update() {
     rbProfit.textContent = profitPctOfPrice > 15 ? fmtMoneySign(p) : '';
   } else {
     rbCost.style.width = '100%';
-    rbCost.textContent = '';
+    rbCost.textContent = fmtMoney(c) + ' cost > ' + fmtMoney(price) + ' price';
     rbProfit.style.width = '0%';
     rbProfit.style.background = 'var(--red)';
     rbProfit.textContent = '';
-    /* Show the loss inside the cost bar instead */
-    rbCost.textContent = fmtMoney(c) + ' cost > ' + fmtMoney(price) + ' price';
   }
 
-  /* Cost stack — update persistent elements */
+  /* Cost stack */
   var printVal = num(s.ctp);
   var delVal   = fixed() / Math.max(qty, 1);
   var packVal  = num(packaging);
@@ -456,26 +527,21 @@ function update() {
     return Math.max((val / totalCost) * 100, 6) + '%';
   }
 
-  var segPrint = document.getElementById('seg-print');
-  var segDel   = document.getElementById('seg-delivery');
-  var segPack  = document.getElementById('seg-packaging');
-  var segExtra = document.getElementById('seg-extras');
+  document.getElementById('seg-print').style.width = segPct(printVal);
+  document.getElementById('seg-print').style.background = COST_COLORS.print;
+  document.getElementById('seg-print').textContent = (printVal / totalCost > 0.15) ? fmtMoney(printVal) : '';
 
-  segPrint.style.width = segPct(printVal);
-  segPrint.style.background = COST_COLORS.print;
-  segPrint.textContent = (printVal / totalCost > 0.15) ? fmtMoney(printVal) : '';
+  document.getElementById('seg-delivery').style.width = segPct(delVal);
+  document.getElementById('seg-delivery').style.background = COST_COLORS.delivery;
+  document.getElementById('seg-delivery').textContent = (delVal / totalCost > 0.12) ? fmtMoney(delVal) : '';
 
-  segDel.style.width = segPct(delVal);
-  segDel.style.background = COST_COLORS.delivery;
-  segDel.textContent = (delVal / totalCost > 0.12) ? fmtMoney(delVal) : '';
+  document.getElementById('seg-packaging').style.width = segPct(packVal);
+  document.getElementById('seg-packaging').style.background = COST_COLORS.packaging;
+  document.getElementById('seg-packaging').textContent = '';
 
-  segPack.style.width = segPct(packVal);
-  segPack.style.background = COST_COLORS.packaging;
-  segPack.textContent = '';
-
-  segExtra.style.width = segPct(extraVal);
-  segExtra.style.background = COST_COLORS.extras;
-  segExtra.textContent = '';
+  document.getElementById('seg-extras').style.width = segPct(extraVal);
+  document.getElementById('seg-extras').style.background = COST_COLORS.extras;
+  document.getElementById('seg-extras').textContent = '';
 
   document.getElementById('cost-stack-legend').innerHTML =
     '<div class="cost-stack-legend-item"><span class="cost-stack-legend-dot" style="background:' + COST_COLORS.print + '"></span>Print ' + fmtMoney(printVal) + '</div>' +
@@ -533,6 +599,27 @@ function update() {
     noteEl.innerHTML = 'Break-even at <strong>' + beVal + ' prints</strong> per order. Need <strong>' + (beVal - qty) + ' more</strong> to turn a profit on this size.';
   }
 
+  /* Bulk savings callout */
+  var callout = document.getElementById('savings-callout');
+  var calloutText = document.getElementById('savings-text');
+  if (qty > 1) {
+    var singleCost = costPP(s, 1);
+    var bulkCost = c;
+    var savedPerPrint = singleCost - bulkCost;
+    var singleProfit = profitPP(s, 1);
+    var profitGain = p - singleProfit;
+    callout.className = 'savings-callout';
+    calloutText.innerHTML =
+      'Ordering <strong>' + qty + '</strong> instead of 1 saves <strong>' + fmtMoney(savedPerPrint) + '/print</strong> on delivery costs' +
+      (profitGain > 0 ? ' \u2014 that\u2019s <strong>' + fmtMoneySign(profitGain) + ' more profit</strong> per print.' :
+       singleProfit < 0 && p >= 0 ? ' \u2014 enough to <strong>turn a loss into profit</strong>.' : '.');
+  } else {
+    callout.className = 'savings-callout hidden';
+  }
+
+  /* Size comparison bars */
+  updateCompareBars();
+
   /* Table */
   buildTable();
 
@@ -560,5 +647,5 @@ populateSettingsInputs();
 buildSizeEditor();
 buildSizeButtons();
 buildLegend();
-buildChart();
+rebuildChart();
 update();
