@@ -7,49 +7,155 @@
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+:root {
+  --bg: #f6f5f1;
+  --card: #ffffff;
+  --text: #1a1a18;
+  --muted: #888780;
+  --faint: #b4b2a9;
+  --border: rgba(0,0,0,0.08);
+  --accent: #1a1a18;
+  --green: #0f6e56;
+  --green-bg: #e1f5ee;
+  --green-deep: #085041;
+  --red: #c0392b;
+  --red-bg: #faece7;
+  --red-deep: #4a1b0c;
+  --orange: #e67e22;
+  --radius: 14px;
+  --radius-sm: 10px;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-  background: #f5f4f0;
-  color: #1a1a18;
+  background: var(--bg);
+  color: var(--text);
   min-height: 100vh;
   padding: 1.25rem 1rem 3rem;
+  -webkit-font-smoothing: antialiased;
 }
 
-.container { max-width: 860px; margin: 0 auto; }
+.container { max-width: 900px; margin: 0 auto; }
 
-header { margin-bottom: 1.5rem; }
-header h1 { font-size: 20px; font-weight: 500; margin-bottom: 4px; }
-header p { font-size: 13px; color: #888780; line-height: 1.5; }
+/* Header */
+header { margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+.header-left {}
+header h1 { font-size: 21px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.01em; }
+header p { font-size: 13px; color: var(--muted); line-height: 1.5; max-width: 480px; }
 
+/* Settings toggle */
+.settings-toggle {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 99px; padding: 7px 14px 7px 11px;
+  font-size: 13px; font-weight: 500; color: var(--muted);
+  cursor: pointer; font-family: inherit;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.settings-toggle:hover { color: var(--text); border-color: rgba(0,0,0,0.18); }
+.settings-toggle.open { background: var(--text); color: #fff; border-color: var(--text); }
+.settings-toggle svg { width: 15px; height: 15px; transition: transform 0.3s; }
+.settings-toggle.open svg { transform: rotate(60deg); }
+
+/* Card */
 .card {
-  background: #fff;
-  border-radius: 14px;
-  border: 0.5px solid rgba(0,0,0,0.1);
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
   padding: 1.25rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
+  transition: box-shadow 0.2s;
 }
+.card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
 .card-title {
-  font-size: 11px;
-  font-weight: 500;
-  color: #aaa8a0;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 0.875rem;
+  font-size: 11px; font-weight: 600;
+  color: var(--faint); text-transform: uppercase;
+  letter-spacing: 0.06em; margin-bottom: 0.875rem;
 }
 
+/* Settings panel */
+.settings-panel {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s, margin 0.3s;
+  opacity: 0; margin-bottom: 0;
+}
+.settings-panel.open {
+  max-height: 800px; opacity: 1; margin-bottom: 0.75rem;
+}
+.settings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.setting-group {
+  background: var(--bg); border-radius: var(--radius-sm);
+  padding: 14px 16px;
+}
+.setting-group label {
+  display: block; font-size: 11px; font-weight: 500;
+  color: var(--muted); text-transform: uppercase;
+  letter-spacing: 0.04em; margin-bottom: 8px;
+}
+.setting-input {
+  display: flex; align-items: center; gap: 4px;
+}
+.setting-input span {
+  font-size: 14px; color: var(--muted); font-weight: 500;
+}
+.setting-input input {
+  width: 100%; border: 1px solid var(--border);
+  border-radius: 8px; padding: 7px 10px;
+  font-size: 14px; font-family: inherit; font-weight: 500;
+  background: var(--card); color: var(--text);
+  outline: none; transition: border-color 0.2s;
+}
+.setting-input input:focus { border-color: var(--accent); }
+
+/* Size editor table in settings */
+.size-editor { grid-column: 1 / -1; }
+.size-editor-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 13px;
+}
+.size-editor-table th {
+  text-align: left; font-size: 10px; font-weight: 600;
+  color: var(--faint); text-transform: uppercase;
+  letter-spacing: 0.04em; padding: 0 8px 6px 0;
+}
+.size-editor-table td { padding: 4px 8px 4px 0; }
+.size-editor-table input {
+  width: 80px; border: 1px solid var(--border);
+  border-radius: 6px; padding: 5px 8px;
+  font-size: 13px; font-family: inherit; font-weight: 500;
+  background: var(--card); color: var(--text);
+  outline: none; transition: border-color 0.2s;
+}
+.size-editor-table input:focus { border-color: var(--accent); }
+.size-name { font-weight: 500; color: var(--text); }
+.settings-actions {
+  grid-column: 1 / -1;
+  display: flex; gap: 8px; justify-content: flex-end;
+}
+.btn-reset {
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 8px; padding: 7px 16px;
+  font-size: 12px; font-weight: 500; color: var(--muted);
+  cursor: pointer; font-family: inherit; transition: all 0.2s;
+}
+.btn-reset:hover { border-color: var(--red); color: var(--red); }
+
+/* Size buttons */
 .size-scroll {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
+  display: flex; gap: 6px; overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  padding-bottom: 2px;
+  scrollbar-width: none; padding-bottom: 2px;
 }
 .size-scroll::-webkit-scrollbar { display: none; }
 
 .size-btn {
   flex-shrink: 0;
-  border: 0.5px solid rgba(0,0,0,0.18);
+  border: 1.5px solid rgba(0,0,0,0.12);
   background: transparent;
   border-radius: 99px;
   padding: 8px 16px;
@@ -59,166 +165,239 @@ header p { font-size: 13px; color: #888780; line-height: 1.5; }
   font-family: inherit;
   white-space: nowrap;
   -webkit-tap-highlight-color: transparent;
+  transition: all 0.2s;
+  font-weight: 450;
 }
+.size-btn:hover { border-color: rgba(0,0,0,0.3); }
 .size-btn.active {
-  background: #1a1a18;
-  color: #fff;
-  border-color: #1a1a18;
-  font-weight: 500;
+  background: var(--accent); color: #fff;
+  border-color: var(--accent); font-weight: 500;
 }
 
+/* Hero section */
 .hero {
-  display: flex;
-  align-items: baseline;
+  display: flex; align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 1rem;
-  gap: 8px;
-  flex-wrap: wrap;
+  margin-bottom: 1rem; gap: 8px; flex-wrap: wrap;
 }
-.hero-size { font-size: 24px; font-weight: 500; }
-.hero-price { font-size: 14px; color: #888780; }
+.hero-size { font-size: 26px; font-weight: 600; letter-spacing: -0.01em; }
+.hero-price { font-size: 14px; color: var(--muted); }
 
+/* Metrics */
 .metrics {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 8px; margin-bottom: 1.25rem;
+}
+.metric {
+  background: var(--bg); border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  transition: transform 0.15s;
+}
+.metric:hover { transform: translateY(-1px); }
+.metric-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; font-weight: 450; }
+.metric-value {
+  font-size: 20px; font-weight: 600; color: var(--text);
+  transition: color 0.3s;
+  letter-spacing: -0.01em;
+}
+.metric-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.pos { color: var(--green); }
+.neg { color: var(--red); }
+
+/* Margin bar */
+.margin-bar-wrap { margin-bottom: 1.25rem; }
+.margin-bar-labels {
+  display: flex; justify-content: space-between;
+  font-size: 11px; color: var(--muted); margin-bottom: 6px;
+}
+.margin-bar-labels .margin-pct { font-weight: 600; }
+.margin-bar {
+  height: 8px; border-radius: 4px;
+  background: #e8e7e3; overflow: hidden;
+  position: relative;
+}
+.margin-bar-cost {
+  position: absolute; left: 0; top: 0; height: 100%;
+  background: #d4d2cb; border-radius: 4px 0 0 4px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.margin-bar-profit {
+  position: absolute; top: 0; height: 100%;
+  border-radius: 0 4px 4px 0;
+  transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1), width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
+}
+
+/* Cost stack visual */
+.cost-stack {
+  display: flex; gap: 4px; margin-bottom: 1.25rem;
+  height: 32px; border-radius: 8px; overflow: hidden;
+}
+.cost-stack-seg {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 600; color: #fff;
+  transition: flex 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 0; overflow: hidden; white-space: nowrap;
+  border-radius: 4px;
+}
+.cost-stack-legend {
+  display: flex; flex-wrap: wrap; gap: 4px 12px;
   margin-bottom: 1.25rem;
 }
-.metric { background: #f5f4f0; border-radius: 10px; padding: 11px 13px; }
-.metric-label { font-size: 11px; color: #888780; margin-bottom: 3px; }
-.metric-value { font-size: 20px; font-weight: 500; color: #1a1a18; }
-.pos { color: #0f6e56; }
-.neg { color: #993c1d; }
+.cost-stack-legend-item {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; color: var(--muted);
+}
+.cost-stack-legend-dot {
+  width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0;
+}
 
+/* Slider */
 .slider-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 10px;
+  display: flex; justify-content: space-between;
+  align-items: baseline; margin-bottom: 10px;
 }
 .slider-label { font-size: 13px; color: #5f5e5a; }
-.slider-val { font-size: 16px; font-weight: 500; }
+.slider-val { font-size: 16px; font-weight: 600; }
 
+.slider-container { position: relative; padding-bottom: 2px; }
 input[type=range] {
-  width: 100%;
-  appearance: none;
-  -webkit-appearance: none;
-  height: 5px;
-  background: #d3d1c7;
-  border-radius: 3px;
-  outline: none;
-  cursor: pointer;
+  width: 100%; appearance: none; -webkit-appearance: none;
+  height: 6px; background: #e0dfd9; border-radius: 3px;
+  outline: none; cursor: pointer;
 }
 input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: #1a1a18;
-  cursor: pointer;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--accent); cursor: pointer;
   border: 3px solid #fff;
-  box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.08);
+  transition: transform 0.15s;
 }
+input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.08); }
 input[type=range]::-moz-range-thumb {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: #1a1a18;
-  border: 3px solid #fff;
-  box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--accent); border: 3px solid #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.08);
 }
+
 .slider-ticks {
-  display: flex;
-  justify-content: space-between;
-  padding: 5px 2px 0;
+  display: flex; justify-content: space-between;
+  padding: 6px 2px 0;
 }
-.slider-ticks span { font-size: 10px; color: #b4b2a9; }
+.slider-ticks span { font-size: 10px; color: var(--faint); }
 
+/* Break-even marker on slider */
+.be-marker {
+  position: absolute; top: -6px;
+  width: 2px; height: 18px;
+  background: var(--orange);
+  border-radius: 1px;
+  transition: left 0.3s, opacity 0.3s;
+  pointer-events: none;
+  z-index: 1;
+}
+.be-marker::after {
+  content: 'BE';
+  position: absolute; top: -16px;
+  left: 50%; transform: translateX(-50%);
+  font-size: 9px; font-weight: 700;
+  color: var(--orange);
+  letter-spacing: 0.02em;
+}
+
+/* Break-even note */
 .be-note {
-  font-size: 13px;
-  color: #888780;
-  margin-top: 12px;
-  padding: 10px 14px;
-  background: #f5f4f0;
-  border-radius: 10px;
+  font-size: 13px; color: var(--muted);
+  margin-top: 14px; padding: 10px 14px;
+  background: var(--bg); border-radius: var(--radius-sm);
   line-height: 1.5;
+  transition: background 0.3s, color 0.3s;
 }
-.be-note strong { color: #1a1a18; }
-.be-note.ok { background: #e1f5ee; color: #085041; }
-.be-note.warn { background: #faece7; color: #4a1b0c; }
+.be-note strong { color: var(--text); }
+.be-note.ok { background: var(--green-bg); color: var(--green-deep); }
+.be-note.ok strong { color: var(--green-deep); }
+.be-note.warn { background: var(--red-bg); color: var(--red-deep); }
+.be-note.warn strong { color: var(--red-deep); }
 
+/* Chart */
 .legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 14px;
-  margin-bottom: 12px;
+  display: flex; flex-wrap: wrap;
+  gap: 6px 12px; margin-bottom: 12px;
 }
 .legend-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: #888780;
-  cursor: pointer;
+  display: flex; align-items: center;
+  gap: 6px; font-size: 12px; color: var(--muted);
+  cursor: pointer; padding: 2px 0;
+  transition: color 0.2s;
 }
+.legend-item:hover { color: var(--text); }
+.legend-item.active { color: var(--text); font-weight: 500; }
 .legend-dot { width: 14px; height: 3px; border-radius: 2px; flex-shrink: 0; }
 
 .chart-wrap { position: relative; width: 100%; height: 230px; }
 
+/* Table */
 .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .scroll-hint {
-  font-size: 11px;
-  color: #b4b2a9;
-  text-align: right;
-  margin-bottom: 6px;
+  font-size: 11px; color: var(--faint);
+  text-align: right; margin-bottom: 6px;
 }
 table {
-  width: 100%;
-  min-width: 340px;
-  border-collapse: collapse;
-  font-size: 13px;
+  width: 100%; min-width: 380px;
+  border-collapse: collapse; font-size: 13px;
 }
 th {
-  text-align: left;
-  font-size: 11px;
-  font-weight: 500;
-  color: #aaa8a0;
-  text-transform: uppercase;
+  text-align: left; font-size: 10px; font-weight: 600;
+  color: var(--faint); text-transform: uppercase;
   letter-spacing: 0.04em;
-  padding: 0 14px 8px 0;
-  border-bottom: 0.5px solid rgba(0,0,0,0.1);
+  padding: 0 12px 8px 0;
+  border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
 th:last-child, td:last-child { text-align: right; padding-right: 0; }
 td {
-  padding: 9px 14px 9px 0;
-  border-bottom: 0.5px solid rgba(0,0,0,0.06);
+  padding: 10px 12px 10px 0;
+  border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
 tr:last-child td { border-bottom: none; }
+tr.active-row { background: rgba(0,0,0,0.02); }
 .tag-pos {
-  display: inline-block; background: #e1f5ee; color: #085041;
-  font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 99px;
+  display: inline-block; background: var(--green-bg); color: var(--green-deep);
+  font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px;
 }
 .tag-neg {
-  display: inline-block; background: #faece7; color: #4a1b0c;
-  font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 99px;
+  display: inline-block; background: var(--red-bg); color: var(--red-deep);
+  font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px;
 }
 
+/* Footer */
 footer {
-  font-size: 11px;
-  color: #b4b2a9;
-  margin-top: 1rem;
-  text-align: center;
-  line-height: 1.8;
+  font-size: 11px; color: var(--faint);
+  margin-top: 1rem; text-align: center; line-height: 1.8;
 }
 
+/* Animations */
+@keyframes fadeNum {
+  0% { opacity: 0.4; transform: translateY(2px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.num-anim { animation: fadeNum 0.2s ease-out; }
+
+/* Responsive */
 @media (min-width: 560px) {
   body { padding: 2rem 1.5rem 3rem; }
-  header h1 { font-size: 22px; }
+  header h1 { font-size: 24px; }
   .metrics { grid-template-columns: repeat(4, 1fr); }
   .chart-wrap { height: 280px; }
   .scroll-hint { display: none; }
+  .settings-grid { grid-template-columns: 1fr 1fr 1fr 1fr; }
+}
+
+@media (max-width: 559px) {
+  .settings-grid { grid-template-columns: 1fr 1fr; }
+  .size-editor { overflow-x: auto; }
 }
 </style>
 </head>
@@ -226,28 +405,106 @@ footer {
 <div class="container">
 
   <header>
-    <h1>Print Pricing Calculator</h1>
-    <p>Select a size and drag the slider to see how bulk ordering shifts your costs and profit.</p>
+    <div class="header-left">
+      <h1>Print Pricing Calculator</h1>
+      <p>Select a size and drag the slider to see how bulk ordering shifts your costs and profit.</p>
+    </div>
+    <button class="settings-toggle" id="settings-btn" onclick="toggleSettings()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+      Costs
+    </button>
   </header>
 
+  <!-- Settings Panel -->
+  <div class="card settings-panel" id="settings-panel">
+    <div class="card-title">Adjust your costs</div>
+    <div class="settings-grid">
+      <div class="setting-group">
+        <label>Delivery to you</label>
+        <div class="setting-input">
+          <span>$</span>
+          <input type="number" id="in-delivery" value="15" min="0" step="0.5" onchange="onSettingChange()" />
+        </div>
+      </div>
+      <div class="setting-group">
+        <label>Shipping to customer</label>
+        <div class="setting-input">
+          <span>$</span>
+          <input type="number" id="in-shipping" value="10" min="0" step="0.5" onchange="onSettingChange()" />
+        </div>
+      </div>
+      <div class="setting-group">
+        <label>Packaging per print</label>
+        <div class="setting-input">
+          <span>$</span>
+          <input type="number" id="in-packaging" value="1.40" min="0" step="0.1" onchange="onSettingChange()" />
+        </div>
+      </div>
+      <div class="setting-group">
+        <label>Extras per print</label>
+        <div class="setting-input">
+          <span>$</span>
+          <input type="number" id="in-extras" value="1.00" min="0" step="0.1" onchange="onSettingChange()" />
+        </div>
+      </div>
+
+      <div class="setting-group size-editor">
+        <label>Print costs &amp; sale prices by size</label>
+        <div class="table-scroll">
+          <table class="size-editor-table">
+            <thead><tr><th>Size</th><th>Print cost</th><th>Sale price</th></tr></thead>
+            <tbody id="size-editor-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="settings-actions">
+        <button class="btn-reset" onclick="resetDefaults()">Reset to defaults</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Size selector -->
   <div class="card">
     <div class="card-title">Print size</div>
     <div class="size-scroll" id="size-btns"></div>
   </div>
 
+  <!-- Main dashboard -->
   <div class="card">
     <div class="hero">
-      <span class="hero-size" id="hero-size">—</span>
+      <span class="hero-size" id="hero-size">&mdash;</span>
       <span class="hero-price" id="hero-price"></span>
     </div>
+
+    <!-- Margin bar -->
+    <div class="margin-bar-wrap">
+      <div class="margin-bar-labels">
+        <span>Cost vs Revenue per print</span>
+        <span class="margin-pct" id="margin-pct">&mdash;</span>
+      </div>
+      <div class="margin-bar">
+        <div class="margin-bar-cost" id="margin-bar-cost"></div>
+        <div class="margin-bar-profit" id="margin-bar-profit"></div>
+      </div>
+    </div>
+
+    <!-- Cost breakdown stack -->
+    <div class="cost-stack" id="cost-stack"></div>
+    <div class="cost-stack-legend" id="cost-stack-legend"></div>
+
+    <!-- Metrics -->
     <div class="metrics">
       <div class="metric">
         <div class="metric-label">Cost per print</div>
-        <div class="metric-value" id="m-cpp">—</div>
+        <div class="metric-value" id="m-cpp">&mdash;</div>
       </div>
       <div class="metric">
         <div class="metric-label">Profit per print</div>
-        <div class="metric-value" id="m-ppp">—</div>
+        <div class="metric-value" id="m-ppp">&mdash;</div>
+        <div class="metric-sub" id="m-ppp-sub"></div>
       </div>
       <div class="metric">
         <div class="metric-label">Prints in order</div>
@@ -255,39 +512,48 @@ footer {
       </div>
       <div class="metric">
         <div class="metric-label">Total order profit</div>
-        <div class="metric-value" id="m-top">—</div>
+        <div class="metric-value" id="m-top">&mdash;</div>
+        <div class="metric-sub" id="m-top-sub"></div>
       </div>
     </div>
+
+    <!-- Slider -->
     <div class="slider-header">
       <span class="slider-label">Prints in order</span>
-      <span class="slider-val"><span id="qty-out">1</span> prints</span>
+      <span class="slider-val"><span id="qty-out">1</span> print<span id="qty-plural"></span></span>
     </div>
-    <input type="range" min="1" max="20" value="1" step="1" id="qty-slider" oninput="onSlider(this.value)" />
+    <div class="slider-container">
+      <div class="be-marker" id="be-marker"></div>
+      <input type="range" min="1" max="20" value="1" step="1" id="qty-slider" oninput="onSlider(this.value)" />
+    </div>
     <div class="slider-ticks">
       <span>1</span><span>5</span><span>10</span><span>15</span><span>20</span>
     </div>
     <div class="be-note" id="be-note"></div>
   </div>
 
+  <!-- Chart -->
   <div class="card">
-    <div class="card-title">Total order profit — all sizes</div>
+    <div class="card-title">Total order profit &mdash; all sizes</div>
     <div class="legend" id="legend"></div>
     <div class="chart-wrap">
       <canvas id="myChart"></canvas>
     </div>
   </div>
 
+  <!-- Breakdown table -->
   <div class="card">
-    <div class="card-title">Cost breakdown (single print order)</div>
-    <div class="scroll-hint">← swipe to see all →</div>
+    <div class="card-title">Cost breakdown at <span id="table-qty-label">1 print</span> per order</div>
+    <div class="scroll-hint">&larr; swipe to see all &rarr;</div>
     <div class="table-scroll">
       <table>
         <thead>
           <tr>
             <th>Size</th>
             <th>Print cost</th>
-            <th>Fixed costs</th>
-            <th>Total CTB</th>
+            <th>Delivery share</th>
+            <th>Var. costs</th>
+            <th>Total cost</th>
             <th>Sale price</th>
             <th>Profit</th>
           </tr>
@@ -297,172 +563,401 @@ footer {
     </div>
   </div>
 
-  <footer>
-    Fixed per order: $15 delivery to business + $10 to purchaser = $25 spread across all prints<br>
-    Variable per print: print cost + $1.40 packaging + $1.00 extras
-  </footer>
+  <footer id="footer-text"></footer>
 
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-var sizes = [
-  { label: '8×10"',     ctp: 24, price: 44  },
-  { label: '11×14"',    ctp: 24, price: 64  },
-  { label: '12×16"',    ctp: 30, price: 84  },
-  { label: '16×20"',    ctp: 50, price: 114 },
-  { label: '300×300mm', ctp: 24, price: 64  },
-  { label: '500×500mm', ctp: 60, price: 110 }
+/* ── Default data ── */
+var DEFAULT_SIZES = [
+  { label: '8\u00d710"',     ctp: 24, price: 44  },
+  { label: '11\u00d714"',    ctp: 24, price: 64  },
+  { label: '12\u00d716"',    ctp: 30, price: 84  },
+  { label: '16\u00d720"',    ctp: 50, price: 114 },
+  { label: '300\u00d7300mm', ctp: 24, price: 64  },
+  { label: '500\u00d7500mm', ctp: 60, price: 110 }
 ];
 
+var DEFAULT_DELIVERY = 15;
+var DEFAULT_SHIPPING = 10;
+var DEFAULT_PACKAGING = 1.40;
+var DEFAULT_EXTRAS = 1.00;
+
+/* ── State ── */
+var sizes = JSON.parse(JSON.stringify(DEFAULT_SIZES));
+var delivery = DEFAULT_DELIVERY;
+var shipping = DEFAULT_SHIPPING;
+var packaging = DEFAULT_PACKAGING;
+var extras = DEFAULT_EXTRAS;
+
 var COLORS = ['#E24B4A','#1D9E75','#378ADD','#BA7517','#7F77DD','#D4537E'];
-var FIXED = 25, VAREX = 2.40, MAX = 20;
+var COST_COLORS = { print: '#7F77DD', delivery: '#378ADD', packaging: '#BA7517', extras: '#D4537E' };
+var MAX = 20;
 var qtys = [];
 for (var i = 1; i <= MAX; i++) qtys.push(i);
-var sel = 1, qty = 1;
+var sel = 0, qty = 1;
 
-function costPP(s, n)    { return (s.ctp + VAREX) + FIXED / n; }
+/* ── Derived values ── */
+function fixed()      { return delivery + shipping; }
+function varex()      { return packaging + extras; }
+function costPP(s, n) { return (s.ctp + varex()) + fixed() / n; }
 function profitPP(s, n)  { return s.price - costPP(s, n); }
 function orderProfit(s, n) { return n * profitPP(s, n); }
+function marginPct(s, n) {
+  var p = profitPP(s, n);
+  return (p / s.price) * 100;
+}
 function breakEven(s) {
-  var m = s.price - s.ctp - VAREX;
-  return m <= 0 ? null : Math.ceil(FIXED / m);
+  var m = s.price - s.ctp - varex();
+  return m <= 0 ? null : Math.ceil(fixed() / m);
 }
 
-var btnEl = document.getElementById('size-btns');
-sizes.forEach(function(s, i) {
-  var b = document.createElement('button');
-  b.className = 'size-btn' + (i === sel ? ' active' : '');
-  b.textContent = s.label;
-  b.onclick = function() { sel = i; update(); };
-  btnEl.appendChild(b);
-});
+/* ── Settings panel ── */
+function toggleSettings() {
+  var panel = document.getElementById('settings-panel');
+  var btn = document.getElementById('settings-btn');
+  panel.classList.toggle('open');
+  btn.classList.toggle('open');
+}
 
-var legEl = document.getElementById('legend');
-sizes.forEach(function(s, i) {
-  var d = document.createElement('div');
-  d.className = 'legend-item';
-  d.innerHTML = '<span class="legend-dot" style="background:' + COLORS[i] + '"></span>' + s.label;
-  d.onclick = function() { sel = i; update(); };
-  legEl.appendChild(d);
-});
+function buildSizeEditor() {
+  var tbody = document.getElementById('size-editor-body');
+  tbody.innerHTML = '';
+  sizes.forEach(function(s, i) {
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td class="size-name">' + s.label + '</td>' +
+      '<td><div class="setting-input"><span>$</span><input type="number" value="' + s.ctp + '" min="0" step="1" data-idx="' + i + '" data-field="ctp" onchange="onSizeEdit(this)" /></div></td>' +
+      '<td><div class="setting-input"><span>$</span><input type="number" value="' + s.price + '" min="0" step="1" data-idx="' + i + '" data-field="price" onchange="onSizeEdit(this)" /></div></td>';
+    tbody.appendChild(tr);
+  });
+}
 
-var tbodyEl = document.getElementById('breakdown-body');
-sizes.forEach(function(s) {
-  var ctb = costPP(s, 1);
-  var profit = profitPP(s, 1);
-  var tag = profit >= 0
-    ? '<span class="tag-pos">+$' + profit.toFixed(2) + '</span>'
-    : '<span class="tag-neg">−$' + Math.abs(profit).toFixed(2) + '</span>';
-  var tr = document.createElement('tr');
-  tr.innerHTML =
-    '<td>' + s.label + '</td>' +
-    '<td>$' + s.ctp.toFixed(2) + '</td>' +
-    '<td>$27.40</td>' +
-    '<td>$' + ctb.toFixed(2) + '</td>' +
-    '<td>$' + s.price.toFixed(2) + '</td>' +
-    '<td>' + tag + '</td>';
-  tbodyEl.appendChild(tr);
-});
+function onSizeEdit(el) {
+  var idx = parseInt(el.getAttribute('data-idx'));
+  var field = el.getAttribute('data-field');
+  sizes[idx][field] = parseFloat(el.value) || 0;
+  rebuildAll();
+}
 
-var datasets = sizes.map(function(s, i) {
-  return {
-    label: s.label,
-    data: qtys.map(function(n) { return parseFloat(orderProfit(s, n).toFixed(2)); }),
-    borderColor: COLORS[i],
-    backgroundColor: 'transparent',
-    borderWidth: i === sel ? 2.5 : 1,
-    borderDash: i === sel ? [] : [5, 4],
-    pointRadius: i === sel ? 3 : 0,
-    tension: 0.35
-  };
-});
+function onSettingChange() {
+  delivery = parseFloat(document.getElementById('in-delivery').value) || 0;
+  shipping = parseFloat(document.getElementById('in-shipping').value) || 0;
+  packaging = parseFloat(document.getElementById('in-packaging').value) || 0;
+  extras = parseFloat(document.getElementById('in-extras').value) || 0;
+  rebuildAll();
+}
 
-var myChart = new Chart(document.getElementById('myChart'), {
-  type: 'line',
-  data: { labels: qtys, datasets: datasets },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: { mode: 'index', intersect: false },
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        callbacks: {
-          label: function(ctx) {
-            var v = ctx.parsed.y;
-            return ' ' + ctx.dataset.label + ': ' + (v >= 0 ? '+' : '') + '$' + v.toFixed(2);
+function resetDefaults() {
+  sizes = JSON.parse(JSON.stringify(DEFAULT_SIZES));
+  delivery = DEFAULT_DELIVERY;
+  shipping = DEFAULT_SHIPPING;
+  packaging = DEFAULT_PACKAGING;
+  extras = DEFAULT_EXTRAS;
+  document.getElementById('in-delivery').value = delivery;
+  document.getElementById('in-shipping').value = shipping;
+  document.getElementById('in-packaging').value = packaging;
+  document.getElementById('in-extras').value = extras;
+  buildSizeEditor();
+  rebuildAll();
+}
+
+/* ── Build UI ── */
+function buildSizeButtons() {
+  var el = document.getElementById('size-btns');
+  el.innerHTML = '';
+  sizes.forEach(function(s, i) {
+    var b = document.createElement('button');
+    b.className = 'size-btn' + (i === sel ? ' active' : '');
+    b.textContent = s.label;
+    b.onclick = function() { sel = i; update(); };
+    el.appendChild(b);
+  });
+}
+
+function buildLegend() {
+  var el = document.getElementById('legend');
+  el.innerHTML = '';
+  sizes.forEach(function(s, i) {
+    var d = document.createElement('div');
+    d.className = 'legend-item' + (i === sel ? ' active' : '');
+    d.innerHTML = '<span class="legend-dot" style="background:' + COLORS[i % COLORS.length] + '"></span>' + s.label;
+    d.onclick = function() { sel = i; update(); };
+    el.appendChild(d);
+  });
+}
+
+function buildChart() {
+  var datasets = sizes.map(function(s, i) {
+    return {
+      label: s.label,
+      data: qtys.map(function(n) { return parseFloat(orderProfit(s, n).toFixed(2)); }),
+      borderColor: COLORS[i % COLORS.length],
+      backgroundColor: 'transparent',
+      borderWidth: i === sel ? 2.5 : 1.2,
+      borderDash: i === sel ? [] : [5, 4],
+      pointRadius: i === sel ? 3.5 : 0,
+      pointBackgroundColor: COLORS[i % COLORS.length],
+      pointBorderColor: '#fff',
+      pointBorderWidth: 2,
+      tension: 0.35
+    };
+  });
+
+  if (window.myChart) window.myChart.destroy();
+
+  window.myChart = new Chart(document.getElementById('myChart'), {
+    type: 'line',
+    data: { labels: qtys, datasets: datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 400 },
+      interaction: { mode: 'index', intersect: false },
+      onClick: function(e) {
+        var points = window.myChart.getElementsAtEventForMode(e, 'index', { intersect: false }, false);
+        if (points.length > 0) {
+          var newQty = points[0].index + 1;
+          qty = newQty;
+          document.getElementById('qty-slider').value = qty;
+          update();
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(26,26,24,0.92)',
+          titleFont: { size: 12, weight: '600' },
+          bodyFont: { size: 12 },
+          padding: 10,
+          cornerRadius: 8,
+          callbacks: {
+            title: function(items) { return items[0].label + (items[0].label === '1' ? ' print' : ' prints'); },
+            label: function(ctx) {
+              var v = ctx.parsed.y;
+              return ' ' + ctx.dataset.label + ': ' + (v >= 0 ? '+' : '') + '$' + v.toFixed(2);
+            }
+          }
+        },
+        /* zero line annotation via plugin */
+      },
+      scales: {
+        x: {
+          title: { display: true, text: 'Prints in order', font: { size: 11, weight: '500' }, color: '#aaa8a0' },
+          ticks: { font: { size: 11 }, color: '#aaa8a0', maxTicksLimit: 10 },
+          grid: { color: 'rgba(0,0,0,0.04)' }
+        },
+        y: {
+          title: { display: true, text: 'Total profit ($)', font: { size: 11, weight: '500' }, color: '#aaa8a0' },
+          ticks: {
+            callback: function(v) { return (v >= 0 ? '' : '-') + '$' + Math.abs(v); },
+            font: { size: 11 }, color: '#aaa8a0'
+          },
+          grid: {
+            color: function(ctx) { return ctx.tick.value === 0 ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.04)'; },
+            lineWidth: function(ctx) { return ctx.tick.value === 0 ? 1.5 : 1; }
           }
         }
       }
     },
-    scales: {
-      x: {
-        title: { display: true, text: 'Prints in order', font: { size: 11 }, color: '#aaa8a0' },
-        ticks: { font: { size: 11 }, color: '#aaa8a0', maxTicksLimit: 10 },
-        grid: { color: 'rgba(0,0,0,0.05)' }
-      },
-      y: {
-        title: { display: true, text: 'Total profit (A$)', font: { size: 11 }, color: '#aaa8a0' },
-        ticks: { callback: function(v) { return '$' + v; }, font: { size: 11 }, color: '#aaa8a0' },
-        grid: { color: 'rgba(0,0,0,0.05)' }
+    plugins: [{
+      id: 'qtyLine',
+      afterDraw: function(chart) {
+        var xScale = chart.scales.x;
+        var yScale = chart.scales.y;
+        var x = xScale.getPixelForValue(qty - 1);
+        var ctx = chart.ctx;
+        ctx.save();
+        ctx.beginPath();
+        ctx.setLineDash([4, 3]);
+        ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+        ctx.lineWidth = 1;
+        ctx.moveTo(x, yScale.top);
+        ctx.lineTo(x, yScale.bottom);
+        ctx.stroke();
+        ctx.restore();
       }
-    }
-  }
-});
+    }]
+  });
+}
 
+function buildTable() {
+  var tbody = document.getElementById('breakdown-body');
+  tbody.innerHTML = '';
+  var f = fixed();
+  var v = varex();
+  sizes.forEach(function(s, i) {
+    var delShare = f / qty;
+    var ctb = costPP(s, qty);
+    var profit = profitPP(s, qty);
+    var tag = profit >= 0
+      ? '<span class="tag-pos">+$' + profit.toFixed(2) + '</span>'
+      : '<span class="tag-neg">\u2212$' + Math.abs(profit).toFixed(2) + '</span>';
+    var tr = document.createElement('tr');
+    if (i === sel) tr.className = 'active-row';
+    tr.innerHTML =
+      '<td>' + s.label + '</td>' +
+      '<td>$' + s.ctp.toFixed(2) + '</td>' +
+      '<td>$' + delShare.toFixed(2) + '</td>' +
+      '<td>$' + v.toFixed(2) + '</td>' +
+      '<td>$' + ctb.toFixed(2) + '</td>' +
+      '<td>$' + s.price.toFixed(2) + '</td>' +
+      '<td>' + tag + '</td>';
+    tr.style.cursor = 'pointer';
+    tr.onclick = (function(idx) { return function() { sel = idx; update(); }; })(i);
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('table-qty-label').textContent = qty + (qty === 1 ? ' print' : ' prints');
+}
+
+function rebuildAll() {
+  buildSizeButtons();
+  buildLegend();
+  buildChart();
+  buildTable();
+  update();
+}
+
+/* ── Update (runs on every interaction) ── */
+function animEl(id) {
+  var el = document.getElementById(id);
+  el.classList.remove('num-anim');
+  void el.offsetWidth;
+  el.classList.add('num-anim');
+}
+
+function update() {
+  var s = sizes[sel];
+  var c = costPP(s, qty);
+  var p = profitPP(s, qty);
+  var t = orderProfit(s, qty);
+  var m = marginPct(s, qty);
+
+  document.getElementById('qty-out').textContent = qty;
+  document.getElementById('qty-plural').textContent = qty === 1 ? '' : 's';
+  document.getElementById('m-qty').textContent = qty;
+
+  /* Size buttons */
+  document.querySelectorAll('.size-btn').forEach(function(b, i) {
+    b.className = 'size-btn' + (i === sel ? ' active' : '');
+  });
+  /* Legend */
+  document.querySelectorAll('.legend-item').forEach(function(b, i) {
+    b.className = 'legend-item' + (i === sel ? ' active' : '');
+  });
+
+  /* Chart highlight */
+  if (window.myChart) {
+    window.myChart.data.datasets.forEach(function(ds, i) {
+      ds.data = qtys.map(function(n) { return parseFloat(orderProfit(sizes[i], n).toFixed(2)); });
+      ds.borderWidth = i === sel ? 2.5 : 1.2;
+      ds.borderDash = i === sel ? [] : [5, 4];
+      ds.pointRadius = i === sel ? 3.5 : 0;
+    });
+    window.myChart.update('none');
+  }
+
+  /* Hero */
+  document.getElementById('hero-size').textContent = s.label;
+  document.getElementById('hero-price').textContent = 'Sale price $' + s.price.toFixed(2);
+
+  /* Margin bar */
+  var costPct = Math.min(100, Math.max(0, (c / s.price) * 100));
+  var profitPct = Math.max(0, 100 - costPct);
+  document.getElementById('margin-bar-cost').style.width = costPct + '%';
+  var profitBar = document.getElementById('margin-bar-profit');
+  profitBar.style.left = costPct + '%';
+  profitBar.style.width = profitPct + '%';
+  profitBar.style.background = p >= 0 ? '#1D9E75' : '#E24B4A';
+  var mPctEl = document.getElementById('margin-pct');
+  mPctEl.textContent = (m >= 0 ? '' : '') + m.toFixed(1) + '% margin';
+  mPctEl.style.color = p >= 0 ? 'var(--green)' : 'var(--red)';
+
+  /* Cost stack */
+  var printShare = s.ctp;
+  var delShare = fixed() / qty;
+  var packVal = packaging;
+  var extraVal = extras;
+  var totalCost = printShare + delShare + packVal + extraVal;
+  var stackEl = document.getElementById('cost-stack');
+  stackEl.innerHTML =
+    '<div class="cost-stack-seg" style="flex:' + printShare + ';background:' + COST_COLORS.print + '">' + (printShare/totalCost > 0.12 ? '$'+printShare.toFixed(0) : '') + '</div>' +
+    '<div class="cost-stack-seg" style="flex:' + delShare + ';background:' + COST_COLORS.delivery + '">' + (delShare/totalCost > 0.12 ? '$'+delShare.toFixed(1) : '') + '</div>' +
+    '<div class="cost-stack-seg" style="flex:' + packVal + ';background:' + COST_COLORS.packaging + '"></div>' +
+    '<div class="cost-stack-seg" style="flex:' + extraVal + ';background:' + COST_COLORS.extras + '"></div>';
+
+  var legEl = document.getElementById('cost-stack-legend');
+  legEl.innerHTML =
+    '<div class="cost-stack-legend-item"><span class="cost-stack-legend-dot" style="background:' + COST_COLORS.print + '"></span>Print $' + printShare.toFixed(2) + '</div>' +
+    '<div class="cost-stack-legend-item"><span class="cost-stack-legend-dot" style="background:' + COST_COLORS.delivery + '"></span>Delivery $' + delShare.toFixed(2) + '</div>' +
+    '<div class="cost-stack-legend-item"><span class="cost-stack-legend-dot" style="background:' + COST_COLORS.packaging + '"></span>Packaging $' + packVal.toFixed(2) + '</div>' +
+    '<div class="cost-stack-legend-item"><span class="cost-stack-legend-dot" style="background:' + COST_COLORS.extras + '"></span>Extras $' + extraVal.toFixed(2) + '</div>';
+
+  /* Metrics */
+  document.getElementById('m-cpp').textContent = '$' + c.toFixed(2);
+  animEl('m-cpp');
+
+  var pppEl = document.getElementById('m-ppp');
+  pppEl.className = 'metric-value ' + (p >= 0 ? 'pos' : 'neg');
+  pppEl.textContent = (p >= 0 ? '+' : '') + '$' + p.toFixed(2);
+  document.getElementById('m-ppp-sub').textContent = m.toFixed(1) + '% margin';
+  animEl('m-ppp');
+
+  var topEl = document.getElementById('m-top');
+  topEl.className = 'metric-value ' + (t >= 0 ? 'pos' : 'neg');
+  topEl.textContent = (t >= 0 ? '+' : '') + '$' + t.toFixed(2);
+  document.getElementById('m-top-sub').textContent = 'on ' + qty + (qty === 1 ? ' print' : ' prints');
+  animEl('m-top');
+
+  /* Break-even marker on slider */
+  var beVal = breakEven(s);
+  var beMarker = document.getElementById('be-marker');
+  if (beVal !== null && beVal > 1 && beVal <= MAX) {
+    var pct = ((beVal - 1) / (MAX - 1)) * 100;
+    beMarker.style.left = 'calc(' + pct + '% - 1px)';
+    beMarker.style.opacity = '1';
+  } else {
+    beMarker.style.opacity = '0';
+  }
+
+  /* Break-even note */
+  var noteEl = document.getElementById('be-note');
+  if (beVal === null) {
+    noteEl.className = 'be-note warn';
+    noteEl.innerHTML = 'Sale price doesn\u2019t cover variable costs \u2014 <strong>unprofitable at any quantity</strong>.';
+  } else if (beVal === 1) {
+    noteEl.className = 'be-note ok';
+    noteEl.innerHTML = 'Profitable from the <strong>first print</strong>. Each extra print compounds the gain.';
+  } else if (qty >= beVal) {
+    noteEl.className = 'be-note ok';
+    noteEl.innerHTML = 'Break-even at <strong>' + beVal + ' prints</strong>. You\u2019re above it \u2014 making <strong>$' + p.toFixed(2) + ' profit per print</strong>.';
+  } else {
+    noteEl.className = 'be-note warn';
+    noteEl.innerHTML = 'Break-even at <strong>' + beVal + ' prints</strong> per order. Need <strong>' + (beVal - qty) + ' more</strong> to turn a profit on this size.';
+  }
+
+  /* Table */
+  buildTable();
+
+  /* Footer */
+  document.getElementById('footer-text').innerHTML =
+    'Fixed per order: $' + delivery.toFixed(2) + ' delivery + $' + shipping.toFixed(2) + ' shipping = $' + fixed().toFixed(2) + ' spread across all prints<br>' +
+    'Variable per print: print cost + $' + packaging.toFixed(2) + ' packaging + $' + extras.toFixed(2) + ' extras';
+}
+
+/* ── Slider handler ── */
 function onSlider(v) {
   qty = parseInt(v);
   update();
 }
 
-function update() {
-  document.getElementById('qty-out').textContent = qty;
-  document.getElementById('m-qty').textContent = qty;
-
-  document.querySelectorAll('.size-btn').forEach(function(b, i) {
-    b.className = 'size-btn' + (i === sel ? ' active' : '');
-  });
-
-  myChart.data.datasets.forEach(function(ds, i) {
-    ds.borderWidth = i === sel ? 2.5 : 1;
-    ds.borderDash = i === sel ? [] : [5, 4];
-    ds.pointRadius = i === sel ? 3 : 0;
-  });
-  myChart.update('none');
-
-  var s = sizes[sel];
-  var c = costPP(s, qty);
-  var p = profitPP(s, qty);
-  var t = orderProfit(s, qty);
-
-  document.getElementById('hero-size').textContent = s.label;
-  document.getElementById('hero-price').textContent = 'Sale price $' + s.price.toFixed(2);
-
-  document.getElementById('m-cpp').textContent = '$' + c.toFixed(2);
-
-  var pppEl = document.getElementById('m-ppp');
-  pppEl.className = 'metric-value ' + (p >= 0 ? 'pos' : 'neg');
-  pppEl.textContent = (p >= 0 ? '+' : '') + '$' + p.toFixed(2);
-
-  var topEl = document.getElementById('m-top');
-  topEl.className = 'metric-value ' + (t >= 0 ? 'pos' : 'neg');
-  topEl.textContent = (t >= 0 ? '+' : '') + '$' + t.toFixed(2);
-
-  var beVal = breakEven(s);
-  var noteEl = document.getElementById('be-note');
-  if (beVal === null) {
-    noteEl.className = 'be-note warn';
-    noteEl.textContent = 'Sale price is below variable cost — unprofitable at any quantity.';
-  } else if (beVal === 1) {
-    noteEl.className = 'be-note ok';
-    noteEl.textContent = 'Profitable from the very first print. Each extra print compounds the gain.';
-  } else {
-    noteEl.className = 'be-note';
-    noteEl.innerHTML = 'Break-even at <strong>' + beVal + ' prints</strong> per order. Order ' + beVal + '+ to turn a profit on this size.';
-  }
-}
-
+/* ── Init ── */
+buildSizeEditor();
+buildSizeButtons();
+buildLegend();
+buildChart();
 update();
 </script>
 </body>
