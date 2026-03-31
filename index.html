@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Print Pricing Calculator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: #f5f4f0;
+    color: #1a1a18;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  header {
+    margin-bottom: 2rem;
+  }
+
+  header h1 {
+    font-size: 22px;
+    font-weight: 500;
+    color: #1a1a18;
+    margin-bottom: 4px;
+  }
+
+  header p {
+    font-size: 13px;
+    color: #888780;
+    line-height: 1.5;
+  }
+
+  .card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 0.5px solid rgba(0,0,0,0.1);
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .card-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: #888780;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+  }
+
+  .size-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .size-btn {
+    border: 0.5px solid rgba(0,0,0,0.2);
+    background: transparent;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 13px;
+    color: #5f5e5a;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+
+  .size-btn:hover {
+    background: #f1efe8;
+    color: #1a1a18;
+  }
+
+  .size-btn.active {
+    background: #1a1a18;
+    color: #ffffff;
+    border-color: #1a1a18;
+    font-weight: 500;
+  }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  @media (max-width: 600px) {
+    .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  .metric {
+    background: #f5f4f0;
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+
+  .metric-label {
+    font-size: 11px;
+    color: #888780;
+    margin-bottom: 4px;
+  }
+
+  .metric-value {
+    font-size: 22px;
+    font-weight: 500;
+    color: #1a1a18;
+  }
+
+  .metric-value.positive { color: #0f6e56; }
+  .metric-value.negative { color: #993c1d; }
+
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .slider-label {
+    font-size: 13px;
+    color: #5f5e5a;
+    white-space: nowrap;
+    min-width: 110px;
+  }
+
+  input[type=range] {
+    flex: 1;
+    appearance: none;
+    height: 4px;
+    background: #d3d1c7;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #1a1a18;
+    cursor: pointer;
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+  }
+
+  input[type=range]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #1a1a18;
+    cursor: pointer;
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+  }
+
+  .slider-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1a1a18;
+    min-width: 24px;
+    text-align: right;
+  }
+
+  .be-note {
+    font-size: 12px;
+    color: #888780;
+    margin-top: 10px;
+    min-height: 18px;
+  }
+
+  .be-note strong { color: #1a1a18; }
+  .be-note.ok { color: #0f6e56; }
+  .be-note.warn { color: #993c1d; }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 12px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #888780;
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+
+  .legend-item:hover { color: #1a1a18; }
+
+  .legend-dot {
+    width: 14px;
+    height: 3px;
+    border-radius: 2px;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  .chart-wrap {
+    position: relative;
+    width: 100%;
+    height: 280px;
+  }
+
+  .cost-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .cost-table th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 500;
+    color: #888780;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0 12px 8px 0;
+    border-bottom: 0.5px solid rgba(0,0,0,0.1);
+  }
+
+  .cost-table th:last-child { text-align: right; padding-right: 0; }
+
+  .cost-table td {
+    padding: 8px 12px 8px 0;
+    color: #1a1a18;
+    border-bottom: 0.5px solid rgba(0,0,0,0.06);
+  }
+
+  .cost-table td:last-child { text-align: right; padding-right: 0; }
+  .cost-table tr:last-child td { border-bottom: none; font-weight: 500; }
+
+  .tag-positive {
+    display: inline-block;
+    background: #e1f5ee;
+    color: #085041;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 7px;
+    border-radius: 99px;
+  }
+
+  .tag-negative {
+    display: inline-block;
+    background: #faece7;
+    color: #4a1b0c;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 7px;
+    border-radius: 99px;
+  }
+
+  footer {
+    font-size: 11px;
+    color: #b4b2a9;
+    margin-top: 1.5rem;
+    text-align: center;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>Print Pricing Calculator</h1>
+    <p>Select a print size, then drag the slider to see how bulk ordering affects cost, profit per print, and total order profit.</p>
+  </header>
+
+  <div class="card">
+    <div class="card-title">Select print size</div>
+    <div class="size-btns" id="size-btns"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">At current order quantity</div>
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-label">Cost per print</div>
+        <div class="metric-value" id="m-cpp">—</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Sale price</div>
+        <div class="metric-value" id="m-price">—</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Profit per print</div>
+        <div class="metric-value" id="m-ppp">—</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Total order profit</div>
+        <div class="metric-value" id="m-top">—</div>
+      </div>
+    </div>
+
+    <div style="margin-top: 1.25rem;">
+      <div class="slider-row">
+        <span class="slider-label">Prints in order</span>
+        <input type="range" min="1" max="20" value="1" step="1" id="qty-slider" oninput="onSlider(this.value)" />
+        <span class="slider-value" id="qty-out">1</span>
+      </div>
+      <div class="be-note" id="be-note"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Total order profit — all sizes (1–20 prints per order)</div>
+    <div class="legend" id="legend"></div>
+    <div class="chart-wrap">
+      <canvas id="myChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Cost breakdown — single order</div>
+    <table class="cost-table">
+      <thead>
+        <tr>
+          <th>Size</th>
+          <th>Print cost</th>
+          <th>Packaging</th>
+          <th>Delivery (her)</th>
+          <th>Delivery (buyer)</th>
+          <th>Extras</th>
+          <th>Total CTB</th>
+          <th>Sale price</th>
+          <th>Profit</th>
+        </tr>
+      </thead>
+      <tbody id="breakdown-body"></tbody>
+    </table>
+  </div>
+
+  <footer>
+    Fixed costs per order: $15 delivery to business + $10 delivery to purchaser = $25 (spread across all prints in order)<br>
+    Variable per print: print cost + $1.40 packaging + $1.00 extras = print cost + $2.40
+  </footer>
+
+</div>
+
+<script>
+var sizes = [
+  { label: '8x10"',     ctp: 24, price: 44  },
+  { label: '11x14"',    ctp: 24, price: 64  },
+  { label: '12x16"',    ctp: 30, price: 84  },
+  { label: '16x20"',    ctp: 50, price: 114 },
+  { label: '300x300mm', ctp: 24, price: 64  },
+  { label: '500x500mm', ctp: 60, price: 110 }
+];
+
+var COLORS = ['#E24B4A','#1D9E75','#378ADD','#BA7517','#7F77DD','#D4537E'];
+var FIXED = 25;
+var VAREX = 2.40;
+var MAX = 20;
+var qtys = [];
+for (var i = 1; i <= MAX; i++) qtys.push(i);
+
+var sel = 1;
+var qty = 1;
+
+function cpp(s, n)  { return (s.ctp + VAREX) + FIXED / n; }
+function ppp(s, n)  { return s.price - cpp(s, n); }
+function orderProfit(s, n)  { return n * ppp(s, n); }
+function be(s) {
+  var m = s.price - s.ctp - VAREX;
+  if (m <= 0) return null;
+  return Math.ceil(FIXED / m);
+}
+
+var btnEl = document.getElementById('size-btns');
+sizes.forEach(function(s, i) {
+  var b = document.createElement('button');
+  b.id = 'btn-' + i;
+  b.className = 'size-btn' + (i === sel ? ' active' : '');
+  b.textContent = s.label;
+  b.onclick = function() { sel = i; update(); };
+  btnEl.appendChild(b);
+});
+
+var legEl = document.getElementById('legend');
+sizes.forEach(function(s, i) {
+  var d = document.createElement('div');
+  d.className = 'legend-item';
+  d.innerHTML = '<span class="legend-dot" style="background:' + COLORS[i] + '"></span>' + s.label;
+  d.onclick = function() { sel = i; update(); };
+  legEl.appendChild(d);
+});
+
+var tbodyEl = document.getElementById('breakdown-body');
+sizes.forEach(function(s, i) {
+  var ctb = cpp(s, 1);
+  var profit = ppp(s, 1);
+  var tag = profit >= 0
+    ? '<span class="tag-positive">+$' + profit.toFixed(2) + '</span>'
+    : '<span class="tag-negative">-$' + Math.abs(profit).toFixed(2) + '</span>';
+  var tr = document.createElement('tr');
+  tr.innerHTML =
+    '<td>' + s.label + '</td>' +
+    '<td>$' + s.ctp.toFixed(2) + '</td>' +
+    '<td>$1.40</td>' +
+    '<td>$15.00</td>' +
+    '<td>$10.00</td>' +
+    '<td>$1.00</td>' +
+    '<td>$' + ctb.toFixed(2) + '</td>' +
+    '<td>$' + s.price.toFixed(2) + '</td>' +
+    '<td>' + tag + '</td>';
+  tbodyEl.appendChild(tr);
+});
+
+var datasets = sizes.map(function(s, i) {
+  return {
+    label: s.label,
+    data: qtys.map(function(n) { return parseFloat(orderProfit(s, n).toFixed(2)); }),
+    borderColor: COLORS[i],
+    backgroundColor: 'transparent',
+    borderWidth: i === sel ? 2.5 : 1,
+    borderDash: i === sel ? [] : [5, 4],
+    pointRadius: i === sel ? 3 : 0,
+    tension: 0.35
+  };
+});
+
+var myChart = new Chart(document.getElementById('myChart'), {
+  type: 'line',
+  data: { labels: qtys, datasets: datasets },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: function(ctx) {
+            var v = ctx.parsed.y;
+            return ' ' + ctx.dataset.label + ': ' + (v >= 0 ? '+' : '') + '$' + v.toFixed(2);
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        title: { display: true, text: 'Prints in order', font: { size: 11 }, color: '#888780' },
+        ticks: { font: { size: 11 }, color: '#888780' },
+        grid: { color: 'rgba(0,0,0,0.06)' }
+      },
+      y: {
+        title: { display: true, text: 'Total profit (A$)', font: { size: 11 }, color: '#888780' },
+        ticks: { callback: function(v) { return '$' + v; }, font: { size: 11 }, color: '#888780' },
+        grid: { color: 'rgba(0,0,0,0.06)' }
+      }
+    }
+  }
+});
+
+function onSlider(v) {
+  qty = parseInt(v);
+  document.getElementById('qty-out').textContent = qty;
+  update();
+}
+
+function update() {
+  document.getElementById('qty-out').textContent = qty;
+
+  document.querySelectorAll('.size-btn').forEach(function(b, i) {
+    b.className = 'size-btn' + (i === sel ? ' active' : '');
+  });
+
+  myChart.data.datasets.forEach(function(ds, i) {
+    ds.borderWidth = i === sel ? 2.5 : 1;
+    ds.borderDash = i === sel ? [] : [5, 4];
+    ds.pointRadius = i === sel ? 3 : 0;
+  });
+  myChart.update('none');
+
+  var s = sizes[sel];
+  var c = cpp(s, qty);
+  var p = ppp(s, qty);
+  var t = orderProfit(s, qty);
+
+  document.getElementById('m-cpp').textContent = '$' + c.toFixed(2);
+  document.getElementById('m-price').textContent = '$' + s.price.toFixed(2);
+
+  var pppEl = document.getElementById('m-ppp');
+  pppEl.className = 'metric-value ' + (p >= 0 ? 'positive' : 'negative');
+  pppEl.textContent = (p >= 0 ? '+' : '') + '$' + p.toFixed(2);
+
+  var topEl = document.getElementById('m-top');
+  topEl.className = 'metric-value ' + (t >= 0 ? 'positive' : 'negative');
+  topEl.textContent = (t >= 0 ? '+' : '') + '$' + t.toFixed(2);
+
+  var beVal = be(s);
+  var noteEl = document.getElementById('be-note');
+  if (beVal === null) {
+    noteEl.className = 'be-note warn';
+    noteEl.textContent = 'Sale price is below variable cost — unprofitable at any quantity.';
+  } else if (beVal === 1) {
+    noteEl.className = 'be-note ok';
+    noteEl.textContent = 'Profitable from the very first print. Each additional print compounds the gain.';
+  } else {
+    noteEl.className = 'be-note';
+    noteEl.innerHTML = 'Break-even at <strong>' + beVal + ' prints</strong> per order — order ' + beVal + '+ to turn a profit on this size.';
+  }
+}
+
+update();
+</script>
+</body>
+</html>
